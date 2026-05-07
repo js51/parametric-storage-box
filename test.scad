@@ -4,15 +4,19 @@
 $fn = 100;  // Set the resolution for circles and cylinders
 
 // Parameters
+
+part = "box"; // [box, lid, inserts]
+
 magnet_width = 4;
 magnet_height = 2;
+/* [Hidden] */
 magnet_tolerance = 0.4;  // Tolerance for magnet fit (added to magnet dimensions to ensure it fits in the hole)
 
 magnet_hole_diameter = magnet_width + magnet_tolerance;  // Diameter of hole for magnet
 magnet_hole_height = magnet_height + magnet_tolerance;  // Height of hole for magnet
 
-box_outer_width = 175;
-box_outer_length = 175;
+box_outer_width = 170;
+box_outer_length = 170;
 box_outer_height = 35;
 box_floor_thickness = 3;
 
@@ -35,16 +39,17 @@ inner_box_height = box_outer_height - box_floor_thickness - lid_inset_height;
 
 echo(str("Inner box dimensions: ", inner_box_width, " x ", inner_box_length, " x ", inner_box_height));
 
-part = "box"; // [box, lid, inserts]
 
-if (part == "box") {
-    box();
-} else if (part == "lid") {
-    lid();
-} else if (part == "inserts") {
-    inserts(1, 20);
-} else {
-    echo("Invalid part specified. Please set 'part' to either 'box', 'lid', or 'inserts'.");
+translate([-box_outer_width / 2, -box_outer_length / 2, 0]) {
+    if (part == "box") {
+        box();
+    } else if (part == "lid") {
+        lid();
+    } else if (part == "inserts") {
+        inserts(1, 20);
+    } else {
+        echo("Invalid part specified. Please set 'part' to either 'box', 'lid', or 'inserts'.");
+    }
 }
 
 module box() {
@@ -74,6 +79,11 @@ module box() {
                 cube([box_outer_width - lid_inset_width, box_outer_length - lid_inset_width, lid_inset_height + 1]);  // Lid inset
             }
         }
+
+        // Cut a bit out of the box to lift the lid off the box when opening, so it doesn't get stuck on the magnets
+        translate([box_outer_width / 2, -10, box_outer_height + 1]) {
+            sphere(r = 15);
+        }  
     }
 }
 
@@ -83,7 +93,6 @@ module lid() {
         union () {
             cube([box_outer_width, box_outer_length, lid_height]);  // Main cube
             translate([(lid_inset_width + lid_tolerance) / 2, (lid_inset_width + lid_tolerance) / 2, lid_height]) {
-                color("lightgreen")
                 cube([
                     box_outer_width - lid_inset_width - lid_tolerance, 
                     box_outer_length - lid_inset_width - lid_tolerance, 
